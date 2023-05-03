@@ -1,0 +1,110 @@
+<style>
+  {{  commonCSS  }}
+.table-dep { margin-bottom:40px; }
+.table-dep th:nth-child(3){ width: 120px;}
+</style>
+
+<script>
+const vscode = acquireVsCodeApi();    
+function downloadReport() {
+    vscode.postMessage({
+        command: 'downloadReport',
+        text: 'Download Report Now'
+    })
+}
+</script>
+
+<div style="display: flex;">
+
+<h1 class="header">
+    <h2 class="header">
+            NPM Audit Report
+            <span class='email-link header-link-actions'>
+                <span class='color-grey'> &#10515; &nbsp;<a class='no-link'  href='javascript:void(0)' title='Download Report in PDF Format' onclick="downloadReport()">Download PDF</a></span>
+            </span>
+        </h2>
+</h1>
+</div>
+
+
+<div style="border-bottom: 1px solid #8b8989; margin-bottom: 15px;"> </div>
+
+<h2>Vulnerabilities</h2>
+<div class="content">
+    <div class="content-box box box-critical">
+        <div class="field-label">Critical</div>
+        <div class="field-value">{{ critical }}</div>
+    </div>
+
+    <div class="content-box box box-high">
+        <div class="field-label">High</div>
+        <div class="field-value">{{ high }}</div>
+    </div>
+
+    <div class="content-box box box-moderate">
+        <div class="field-label">Moderate</div>
+        <div class="field-value">{{ moderate }}</div>
+    </div>
+
+    <div class="content-box box box-low" >
+        <div class="field-label">Low</div>
+        <div class="field-value">{{ low }}</div>
+    </div>
+
+    <div class="content-box box box-info">
+        <div class="field-label">Info</div>
+        <div class="field-value">{{ info }}</div>
+    </div>
+</div>
+
+
+<h2>Dependencies</h2>
+<div class="content">
+  <div class="content-box box">
+        <div class="field-label">Total</div>
+        <div class="field-value">{{ totalDependencies }}</div>
+    </div>
+
+    <div class="content-box box">
+        <div class="field-label">Dev</div>
+        <div class="field-value">{{ dev }}</div>
+    </div>
+
+    <div class="content-box box">
+        <div class="field-label">Prod</div>
+        <div class="field-value">{{ prod }}</div>
+    </div>
+
+    <div class="content-box box">
+        <div class="field-label">Optional</div>
+        <div class="field-value">{{ optional }}</div>
+    </div>
+
+    <div class="content-box box">
+        <div class="field-label">Peer</div>
+        <div class="field-value">{{ peer }}</div>
+    </div>
+
+    <div class="content-box box">
+        <div class="field-label">Peer Optional</div>
+        <div class="field-value">{{ peerOptional }}</div>
+    </div>
+</div>
+
+<br/>
+
+ <div class="content mb-3 mt-3">
+    <div class="content-box box" style="background-color:green">
+        <div class="field-label">Fix available with compatible updates</div>
+        <div class="field-value mt-1" >{{fixAvailableWithCompatibleUpdates}}</div>
+    </div>
+
+    <div class="content-box box" style="background-color:#cf6321">
+        <div class="field-label">Fix available with breaking updates</div>
+        <div class="field-value mt-1" >{{fixAvailablewithBreakingChanges}}</div>
+    </div>
+</div>
+
+<div style="border-bottom: 1px solid #8b8989; margin-bottom: 15px;"> </div>
+
+<br/>

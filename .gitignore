@@ -1,0 +1,8 @@
+.vscode/**
+.vscode-test/**
+out/test/**
+test/**
+**/*.map
+typings/**
+node_modules
+npm-dependencies-ui-geeks-1.0.0.vsix
