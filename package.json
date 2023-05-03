@@ -15,12 +15,12 @@
   "activationEvents": [],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/skumar-mca/vsc-extension.git"
+    "url": "git+https://github.com/skumar-mca/ui-geeks-ext-npm-audit.git"
   },
   "author": "skumar.mca2010@gmail.com, Sunil Kumar",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/skumar-mca/vsc-extension/issues"
+    "url": "https://github.com/skumar-mca/ui-geeks-ext-npm-audit/issues"
   },
   "keywords": [
     "npm",
@@ -32,7 +32,7 @@
     "ui-geeks",
     "ui geeks"
   ],
-  "homepage": "https://github.com/skumar-mca/vsc-extension#readme",
+  "homepage": "https://github.com/skumar-mca/ui-geeks-ext-npm-audit#readme",
   "contributes": {
     "commands": [
       {
