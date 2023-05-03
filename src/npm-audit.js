@@ -354,19 +354,6 @@ const npmAuditCommand = async (context) => {
           return;
         }
 
-        // const folderUri = vscode.workspace.workspaceFolders[0].uri;
-        // const reportFileName = posix.join(
-        //   folderUri.path,
-        //   `${REPORT_FOLDER_NAME}/result.json`
-        // );
-
-        // const fileUri = folderUri.with({ path: `${reportFileName}` });
-
-        // await vscode.workspace.fs.writeFile(
-        //   fileUri,
-        //   Buffer.from(JSON.stringify(result.data), 'utf8')
-        // );
-
         createHTMLReport(result.data);
       }
     }

@@ -32,12 +32,12 @@ This extention will generate NPM Audit report, which can also be downloaded in P
 
 ## Contact
 
-If you have any issues report them at <a href='https://github.com/skumar-mca/vsc-extension/issues'>Issues</a>
+If you have any issues report them at <a href='https://github.com/skumar-mca/ui-geeks-ext-package-dep/issues'>Issues</a>
 <br/><br/>
 
 ## Source
 
-<a href='https://github.com/skumar-mca/vsc-extension/'>Github</a>
+<a href='https://github.com/skumar-mca/ui-geeks-ext-package-dep'>Github</a>
 <br/>
 
 <hr>
