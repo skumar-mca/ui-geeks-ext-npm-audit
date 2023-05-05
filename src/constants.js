@@ -14,16 +14,40 @@ const MSGS = {
   REPORT_PDF_CREATED: `A PDF file named '${REPORT_FILE_NAME}.pdf' is download in folder '${REPORT_FOLDER_NAME}'.\n\n
   Note: Folder will automatically be deleted on closing the '${REPORT_TITLE}' tab.`,
   PDF_ERROR: `Error generating PDF Report. Please try again later. Error: ##MESSAGE##.`,
+  PREPARING_PDF: `Generating PDF, please wait...`,
   SCORE_TOOLTIP: `This score calculates overall vulnerability severity from 0 to 10 and is based on the Common Vulnerability Scoring System (CVSS).`,
   CWE_TOOLTIP: `The Common Weakness Enumeration (CWE) is a list of weaknesses in software that can lead to security issues.`,
   GHSA_TOOLTIP: `GHSA is the GitHub Security Advisories database. GHSA ID is the identifier of the advisory for any given vulnerability.`
 };
 
+const COLORS = {
+  critical: '#ff2f2f',
+  high: '#f77a7a',
+  moderate: '#958138',
+  low: '#4ecd86',
+  info: '#6da4dd',
+  grey: '#7a7979'
+};
+
 const COMMON_CSS = `
-body { font-size: 1.2em; background-color: #f6f6f6; color: black; -webkit-print-color-adjust: exact;}
+:root {
+  --critical: #ff2f2f;
+  --high: #f77a7a;
+  --moderate: #958138;
+  --low: #4ecd86;
+  --info: #6da4dd;
+  --critical-bg: #eb5f3f;
+  --high-bg: #f58090;
+  --moderate-bg: #cbbb81;
+  --low-bg: #93dfb4;
+  --info-bg: #b6d3f1;
+}
+
+body { font-size: 1em; background-color: #f6f6f6; color: black; -webkit-print-color-adjust: exact;}
 .b { font-weight: bold; }
 .i { font-style: italic; }
 .text-center { text-align:center; }
+.text-left { text-align:left; }
 .text-right { text-align:right; }
 .float-right { float:right; }
 .mb-1 { margin-bottom:10px; }
@@ -55,11 +79,12 @@ body { font-size: 1.2em; background-color: #f6f6f6; color: black; -webkit-print-
 .table-bordered th, .table-bordered td { border: 1px solid #eceeef;}
 .table-bordered thead th, .table-bordered thead td { border-bottom-width: 2px; }
 .box{ padding:10px; border:1px solid #c0c0c0; margin-bottom: 20px; border-radius: 4px; background:#c0c0c0; }
-.box-critical {background-color: #ff2f2f!important; }
-.box-high { background-color: #ffa9a9!important; }
-.box-moderate { background-color: #ffd49f!important; }
-.box-low { background-color: #f8ffe5; }
-.box-info { background-color: #e2faff; }
+.box-critical {background-color: var(--critical)!important; }
+.box-high { background-color: var(--high)!important; }
+.box-moderate { background-color: var(--moderate)!important; }
+.box-low { background-color: var(--low); }
+.box-info { background-color: var(--info); }
+.box-grey { background-color: var(--info-bg); }
 .box-success { background-color: green;}
 .compat-update { border-left: 5px solid green; }
 .breaking-update { border-left: 5px solid #cf6321; }
@@ -77,6 +102,9 @@ body { font-size: 1.2em; background-color: #f6f6f6; color: black; -webkit-print-
 .is-indirect-indicator { width: 5px; height: 20px; display: inline-block; vertical-align: middle; background-color: #7e4c0d;}
 .is-direct-indicator { width: 5px; height: 20px; display: inline-block; vertical-align: middle; background-color: #c79cff;}
 .version { background-color: #c0c0c0;}
+.flex { display:flex; justify-content: space-around;}
+.report-ul { margin-top: 0; margin-bottom: 0; margin-left: 0; padding-inline-start: 25px; }
+.report-ul li { margin-bottom:3px; }
 `;
 
 module.exports = {
@@ -87,5 +115,6 @@ module.exports = {
   REPORT_FILE_NAME,
   REPORT_FOLDER_NAME,
   REPORT_TITLE,
-  REPORT_TEMPLATE
+  REPORT_TEMPLATE,
+  COLORS
 };

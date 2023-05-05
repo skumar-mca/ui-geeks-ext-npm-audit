@@ -3,18 +3,25 @@ const { dirname, posix } = require('path');
 const util = require('util');
 const { window } = require('vscode');
 const vscode = require('vscode');
-const { findFile, sortByKey } = require('./util');
+const { findFile, sortByKey, getFileContent } = require('./util');
 const {
   MSGS,
   COMMON_CSS,
   REPORT_TEMPLATE,
-  REPORT_TITLE
+  REPORT_TITLE,
+  COLORS
 } = require('./constants');
 const { WebRenderer, getTemplate } = require('./web-renderer');
 
 const webRenderer = new WebRenderer(REPORT_TEMPLATE, REPORT_TITLE);
 
 const REPORT_UTIL = {
+  isObject: (obj) => {
+    return typeof obj === 'object';
+  },
+  isString: (txt) => {
+    return typeof txt === 'string';
+  },
   ifVialsArrayOfObject: (via) => {
     return via.some(({ dependency }) => dependency != null);
   },
@@ -163,6 +170,40 @@ const REPORT_UTIL = {
           <td></td>
         </tr>`;
   },
+  getVulnerabilitiesText: (vul) => {
+    if (vul.via instanceof Array) {
+      let directVul = [];
+      let dependentVul = [];
+      let returnText = ``;
+      let vulText = ``;
+      vul.via.map((via) => {
+        if (REPORT_UTIL.isObject(via) && directVul.indexOf(via.title) === -1) {
+          directVul.push(via.title);
+          vulText += `<div><a class='no-link' href='${via.url}'><b>${via.title}</b></a>.</div>`;
+        }
+
+        if (REPORT_UTIL.isString(via) && dependentVul.indexOf(via) === -1) {
+          dependentVul.push(via);
+        }
+      });
+
+      if (directVul.length > 0) {
+        returnText += ``;
+        returnText += vulText;
+        returnText += ``;
+      }
+
+      if (dependentVul.length > 0) {
+        returnText += `<div class='mt-1'>Depends on vulnerable versions of <b>${dependentVul.join(
+          ', '
+        )}</b></div>`;
+      }
+
+      return returnText;
+    }
+
+    return '';
+  },
   getVulnerabilitiesCount: (vul) => {
     if (vul.via instanceof Array) {
       return vul.via.length;
@@ -241,12 +282,55 @@ const renderAuditError = (error) => {
   });
 };
 
+const renderVulnerabilitiesSummary = (vulnerabilitylist) => {
+  if (vulnerabilitylist.length == 0) {
+    return '';
+  }
+
+  let vulStr = `<div>
+  <h3>Vulnerability Report Summary</h3>
+  <table class='table table-striped table-bordered table-sm'> 
+    <tr>
+      <th class='text-left'>Package</th>
+      <th>Severity</th>
+      <th>Vulnerability</th>
+      <th>Fix Available</th>
+    </tr>
+  `;
+
+  vulnerabilitylist.map((vul) => {
+    const isBooleanFix = REPORT_UTIL.ifFixIsBoolean(vul.fixAvailable);
+
+    vulStr += `
+    <tr>
+      <td>${REPORT_UTIL.buildPackageName(vul)}</td>
+      <td class='text-center'><div class='severity-box box-${
+        vul.severity
+      }'></div></td>
+      <td>${REPORT_UTIL.getVulnerabilitiesText(vul)}</td>
+      <td>${
+        isBooleanFix
+          ? vul.fixAvailable === true
+            ? `<div class='fix-green b'>Yes</div>`
+            : `<div class='fix-red b'>No</div>`
+          : `<div class='fix-yellow b'>Breaking</div>`
+      }</td>
+    </tr>`;
+  });
+
+  vulStr += `</table>
+  </div>`;
+
+  return vulStr;
+};
+
 const renderVulnerabilities = (vulnerabilitylist) => {
   if (vulnerabilitylist.length == 0) {
     return '';
   }
 
   let vulStr = `<div>
+  <h3>Vulnerability Report Details</h3>
   <table class='table table-striped table-bordered table-sm'> 
     <tr>
       <th>Package</th>
@@ -279,14 +363,52 @@ const renderVulnerabilities = (vulnerabilitylist) => {
   return vulStr;
 };
 
+const getApplicationMeta = async () => {
+  const packageFile = await findFile('package.json');
+  if (!packageFile) {
+    return null;
+  }
+
+  const fileContent = await getFileContent(packageFile);
+  if (!fileContent) {
+    return {
+      success: false,
+      data: 'Error: Reading content of package.json'
+    };
+  }
+
+  const packageJSON = JSON.parse(fileContent);
+
+  const {
+    name,
+    version,
+    description,
+    devDependencies,
+    dependencies,
+    peerDependencies
+  } = packageJSON;
+
+  return {
+    appName: name,
+    appVersion: version,
+    appDescription: description,
+    appTotalDep: devDependencies
+      ? Object.keys(devDependencies).length
+      : 0 + dependencies
+      ? Object.keys(dependencies).length
+      : 0 + peerDependencies
+      ? Object.keys(peerDependencies).length
+      : 0
+  };
+};
+
 const createHTMLReport = async (data) => {
   let vulnerabilityList = [];
   if (Object.keys(data.vulnerabilities).length > 0) {
-    vulnerabilityList = REPORT_UTIL.sortByDirect(
+    vulnerabilityList = REPORT_UTIL.sortBySeverity(
       Object.keys(data.vulnerabilities).map((key) => {
         return { ...data.vulnerabilities[key] };
-      }),
-      true
+      })
     );
   }
 
@@ -302,7 +424,7 @@ const createHTMLReport = async (data) => {
   const { dev, prod, optional, peer, peerOptional, total } =
     data.metadata.dependencies;
 
-  const view = {
+  let view = {
     commonCSS: COMMON_CSS,
     critical,
     high,
@@ -316,12 +438,37 @@ const createHTMLReport = async (data) => {
     peerOptional,
     totalDependencies: total,
     fixAvailableWithCompatibleUpdates,
-    fixAvailablewithBreakingChanges
+    fixAvailablewithBreakingChanges,
+    totalVulnerabilities: critical + high + moderate + low + info,
+    depChartDataList: [dev, prod, optional, peer, peerOptional],
+    depChartColorsList: [
+      COLORS.moderate,
+      COLORS.info,
+      COLORS.low,
+      COLORS.high,
+      COLORS.grey
+    ],
+    vulChartDataList: [critical, high, moderate, low, info],
+    chartColorsList: [
+      COLORS.critical,
+      COLORS.high,
+      COLORS.moderate,
+      COLORS.low,
+      COLORS.info
+    ]
   };
+
+  const applicationMeta = await getApplicationMeta();
+  if (applicationMeta) {
+    const { appName, appVersion, appDescription, appTotalDep } =
+      applicationMeta;
+    view = { ...view, appName, appVersion, appDescription, appTotalDep };
+  }
 
   let content = render(await getTemplate(webRenderer.template), view);
 
   if (vulnerabilityList.length > 0) {
+    content += renderVulnerabilitiesSummary(vulnerabilityList);
     content += renderVulnerabilities(vulnerabilityList);
   }
 
