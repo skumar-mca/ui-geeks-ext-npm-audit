@@ -11,8 +11,7 @@ const COMMANDS = {
 const MSGS = {
   PACKAGE_LOCK_JSON_NOT_FOUND: `Error: package-lock.json file not found!`,
   INVALID_SELECTION: `Invalid Selection`,
-  REPORT_PDF_CREATED: `A PDF file named '${REPORT_FILE_NAME}.pdf' is download in folder '${REPORT_FOLDER_NAME}'.\n\n
-  Note: Folder will automatically be deleted on closing the '${REPORT_TITLE}' tab.`,
+  REPORT_CREATED: `Report downloaded successfully!`,
   PDF_ERROR: `Error generating PDF Report. Please try again later. Error: ##MESSAGE##.`,
   PREPARING_PDF: `Generating PDF, please wait...`,
   SCORE_TOOLTIP: `This score calculates overall vulnerability severity from 0 to 10 and is based on the Common Vulnerability Scoring System (CVSS).`,
@@ -36,14 +35,14 @@ const COMMON_CSS = `
   --moderate: #958138;
   --low: #4ecd86;
   --info: #6da4dd;
-  --critical-bg: #eb5f3f;
+  --critical-bg: #ff2f2f;
   --high-bg: #f58090;
   --moderate-bg: #cbbb81;
   --low-bg: #93dfb4;
   --info-bg: #b6d3f1;
 }
 
-body { font-size: 1em; background-color: #f6f6f6; color: black; -webkit-print-color-adjust: exact;}
+body { font-family: Arial, Helvetica, sans-serif; font-size: 1em; background-color: #f6f6f6; color: black; -webkit-print-color-adjust: exact;}
 .b { font-weight: bold; }
 .i { font-style: italic; }
 .text-center { text-align:center; }
@@ -93,18 +92,41 @@ body { font-size: 1em; background-color: #f6f6f6; color: black; -webkit-print-co
 .fix-yellow { color: #cf6321; }
 .email-link { font-size:20px; position:absolute; right: 20px; margin-top:20px; }
 .email-link a.no-link { font-size:16px; }
-.severity-box{ width: 20px; height: 20px; display: inline-block; vertical-align: middle; }
+.severity-box{ width: 75px; display: inline-block; vertical-align: middle; padding: 0px 6px 0px 6px; border-radius: 4px; font-weight: bold; text-align: center; }
+.severity-critical{ background-color: var(--critical-bg); }
+.severity-high{ background-color: var(--high-bg);; }
+.severity-moderate{ background-color:var(--moderate-bg); }
+.severity-low{ background-color:var(--low-bg); }
+.severity-info{ background-color:var(--info-bg); }
 .pill { padding: 2px 10px 2px 10px; border-radius:20px; display:inline-block; }
 .badge { padding: 2px 10px 5px 10px; border-radius:4px; display:inline-block; }
-.impacted {  margin-top:5px; font-style: italic; color: #787373; float: right; }
+.impacted {  margin-top:5px; font-style: italic; color: #787373;  }
 .is-indirect {border-left: 3px solid #7e4c0d!important;}
 .is-direct {border-left: 3px solid #c79cff!important;}
 .is-indirect-indicator { width: 5px; height: 20px; display: inline-block; vertical-align: middle; background-color: #7e4c0d;}
 .is-direct-indicator { width: 5px; height: 20px; display: inline-block; vertical-align: middle; background-color: #c79cff;}
-.version { background-color: #c0c0c0;}
 .flex { display:flex; justify-content: space-around;}
 .report-ul { margin-top: 0; margin-bottom: 0; margin-left: 0; padding-inline-start: 25px; }
 .report-ul li { margin-bottom:3px; }
+.package-vul-box {background-color: #ededed;padding: 10px; border: 1px solid #c0c0c0; margin-bottom: 20px; border-radius: 4px; }
+.package-vul-box .table th, .package-vul-box .table td { background-color: #f1f1f1!important;}
+.package-vul-box ul { list-style:none; padding-left:0px}
+.package-vul-box li.li-vul { background: #e1e1e1; padding: 10px 20px 10px 10px; margin-bottom: 3px; border-radius: 4px; }
+.package-vul-box li.li-vul:hover { background: #c7c7c7; }
+.package-vul-box li.li-vul:hover a { color: white; }
+.bl-critical{ border-left: 5px solid var(--critical-bg); }
+.bl-high{ border-left: 5px solid var(--high-bg);; }
+.bl-moderate{ border-left: 5px solid var(--moderate-bg); }
+.bl-low{ border-left: 5px solid var(--low-bg); }
+.bl-info{ border-left: 5px solid var(--info-bg); }
+.pack-vul-tbl th:nth-child(2), .pack-vul-tbl td:nth-child(2) { width: 100px;}
+.pack-vul-tbl th:nth-child(3), .pack-vul-tbl td:nth-child(3) { width: 60px;}
+.pack-vul-tbl th:nth-child(4), .pack-vul-tbl td:nth-child(4) { width: 60px;}
+.pack-vul-tbl th:nth-child(5), .pack-vul-tbl td:nth-child(5) { width: 60px;}
+.vul-detail-right { float:right; display:flex; justify-content: space-between; gap:20px; }
+.bdg-sm{ background: #8f9799; padding: 2px 5px 2px 5px; border-radius: 4px; color:white;}
+.bdg-sm a { color:white!important; text-decoration:none;}
+.td-fix-avl {text-align: center; vertical-align: middle;}
 `;
 
 module.exports = {

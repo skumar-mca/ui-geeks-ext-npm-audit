@@ -1,9 +1,9 @@
 const { render } = require('mustache');
-const { dirname, posix } = require('path');
+const { dirname } = require('path');
 const util = require('util');
 const { window } = require('vscode');
 const vscode = require('vscode');
-const { findFile, sortByKey, getFileContent } = require('./util');
+const { findFile, sortByKey, getFileContent, severityTag } = require('./util');
 const {
   MSGS,
   COMMON_CSS,
@@ -53,8 +53,8 @@ const REPORT_UTIL = {
   buildIsFixAvailable: (isBooleanFix, vul) => {
     return isBooleanFix
       ? vul.fixAvailable == true
-        ? `<div class="fix-green b mt-2">fix available via 'npm audit fix'</div>`
-        : `<div class="fix-red b mt-2">No fix available</div>`
+        ? `<div class="fix-green b mt-1">fix available via 'npm audit fix'</div>`
+        : `<div class="fix-red b mt-1">No fix available</div>`
       : '';
   },
   buildBreakingFix: (vul) => {
@@ -68,29 +68,46 @@ const REPORT_UTIL = {
     </div>`
       : '';
   },
-  buildVunerability: (hasDepenciesList, via) => {
+  buildVunerability: (vul, hasDepenciesList, via) => {
+    const rightSection = `<div class='vul-detail-right'>
+            <div>${REPORT_UTIL.buildScore(via)}</div>
+            <div>${REPORT_UTIL.getCWEValue(via.cwe)}</div>
+            ${
+              via.url
+                ? `<div class='bdg-sm'><a href='${via.url}'>${via.url.replace(
+                    'https://github.com/advisories/',
+                    ''
+                  )}</a></div>`
+                : ''
+            }
+          </div>`;
+
+    const sev = `<span class='mr-1'>${REPORT_UTIL.buildSeverity(
+      hasDepenciesList,
+      vul,
+      via
+    )}</span>`;
+
     return hasDepenciesList
-      ? `<div>Depends on vulnerable versions of <b>${via}</b></div>`
-      : `<b>${via.title}</b>${
+      ? `<div>${sev}Depends on vulnerable versions of <b>${via}</b>${rightSection}</div>`
+      : `<b>${sev} ${via.title}</b>${
           via.range
-            ? `<br/><div class='impacted'>Impacted Versions: <b>${via.range}</b></div>`
-            : ''
+            ? `<br/><div class='mt-1'><span class='impacted'>Impacted Versions: <b>${via.range}</b></span>${rightSection}</div>`
+            : `${rightSection}`
         }`;
   },
   buildSeverity: (hasDepenciesList, vul, via) => {
-    return `<div class='severity-box box-${
-      hasDepenciesList ? vul.severity : via.severity
-    }'></div>`;
+    return severityTag(hasDepenciesList ? vul.severity : via.severity);
   },
   buildScore: (via) => {
     return via.cvss && via.cvss.score
-      ? `<span ><b>${via.cvss.score}</b></span>`
+      ? `<div class='bdg-sm'>Score: <span><b>${via.cvss.score}</b>/10</span></div>`
       : '';
   },
   buildPackage: (vul, isBooleanFix) => {
     return `<div>
               ${REPORT_UTIL.buildPackageName(vul)}
-              <div class='float-right badge version'><i>v${vul.range}</i></div>
+              <span class='color-grey'><i>v${vul.range}</i></span>
             </div>
             ${REPORT_UTIL.buildIsFixAvailable(isBooleanFix, vul)}
             ${REPORT_UTIL.buildBreakingFix(vul)}`;
@@ -103,11 +120,11 @@ const REPORT_UTIL = {
     if (cweList instanceof Array) {
       cweArr = cweList.map((cwe) => {
         const cweVal = cwe.replace('CWE-', '');
-        return `<a href='https://cwe.mitre.org/data/definitions/${cweVal}.html'>${cweVal}</a>`;
+        return `<a href='https://cwe.mitre.org/data/definitions/${cweVal}.html'>CWE-${cweVal}</a>`;
       });
 
       if (cweArr.length > 0) {
-        return `${cweArr.join('<br/>')}`;
+        return `<div class='bdg-sm'>${cweArr.join(' | ')}</div>`;
       }
 
       return '';
@@ -117,37 +134,19 @@ const REPORT_UTIL = {
   getVulnerabilitiesValue: (vul) => {
     let vulArr = [];
     if (vul.via instanceof Array) {
-      const vulnerabilityCount = REPORT_UTIL.getVulnerabilitiesCount(vul);
-      const hasDepenciesList = REPORT_UTIL.ifViaIsArrayOfString(vul.via);
-      const isBooleanFix = REPORT_UTIL.ifFixIsBoolean(vul.fixAvailable);
+      const hasDepenciesList =
+        REPORT_UTIL.ifViaIsArrayOfString(vul.via) ||
+        REPORT_UTIL.isString(vul.via);
 
       vulArr = vul.via.map((via, index) => {
-        return `<tr>
-          ${
-            index === 0
-              ? `<td rowspan='${vulnerabilityCount}' class='${
-                  vul.isDirect ? 'is-direct' : 'is-indirect'
-                }'>${REPORT_UTIL.buildPackage(vul, isBooleanFix)}</td>`
-              : ''
-          }
-
-          <td>${REPORT_UTIL.buildVunerability(hasDepenciesList, via)}</td>
-          
-          <td class='text-center'>${REPORT_UTIL.buildSeverity(
-            hasDepenciesList,
+        return `<li class='li-vul'>
+          <div>${REPORT_UTIL.buildVunerability(
             vul,
+            hasDepenciesList,
             via
-          )}</td>
-
-          <td class='text-center'>${REPORT_UTIL.buildScore(via)}</td>
-
-          <td>${REPORT_UTIL.getCWEValue(via.cwe)}</td>
-            
-          <td class='text-center'>
-              ${via.url ? `<a href='${via.url}'>link</a>` : ''}
-          </td>
-
-        </tr>`;
+          )}</div>
+          
+        </li>`;
       });
 
       if (vulArr.length > 0) {
@@ -156,19 +155,6 @@ const REPORT_UTIL = {
 
       return '';
     }
-
-    return `<tr>
-          <td>
-            <div>${vul.name}</div>
-            <div>${vul.range}</div>
-          </td>
-
-          <td></td>
-          <td></td>
-          <td></td>
-          <td></td>
-          <td></td>
-        </tr>`;
   },
   getVulnerabilitiesText: (vul) => {
     if (vul.via instanceof Array) {
@@ -289,6 +275,7 @@ const renderVulnerabilitiesSummary = (vulnerabilitylist) => {
 
   let vulStr = `<div>
   <h3>Vulnerability Report Summary</h3>
+
   <table class='table table-striped table-bordered table-sm'> 
     <tr>
       <th class='text-left'>Package</th>
@@ -303,12 +290,12 @@ const renderVulnerabilitiesSummary = (vulnerabilitylist) => {
 
     vulStr += `
     <tr>
-      <td>${REPORT_UTIL.buildPackageName(vul)}</td>
-      <td class='text-center'><div class='severity-box box-${
-        vul.severity
-      }'></div></td>
+      <td>
+        <b><a href='#${vul.name}' class='no-link'>${vul.name}</a></b>
+      </td>
+      <td class='text-center'>${severityTag(vul.severity)}</td>
       <td>${REPORT_UTIL.getVulnerabilitiesText(vul)}</td>
-      <td>${
+      <td class='td-fix-avl'>${
         isBooleanFix
           ? vul.fixAvailable === true
             ? `<div class='fix-green b'>Yes</div>`
@@ -330,34 +317,34 @@ const renderVulnerabilities = (vulnerabilitylist) => {
   }
 
   let vulStr = `<div>
-  <h3>Vulnerability Report Details</h3>
-  <table class='table table-striped table-bordered table-sm'> 
-    <tr>
-      <th>Package</th>
-      <th>Vulnerability</th>
-      <th>Severity</th>
-      <th title='${MSGS.SCORE_TOOLTIP}'>Score <sup>#</sup></th>
-      <th>CWE <sup>@</sup></th>
-      <th>GHSA <sup>$</sup></th>
-    </tr>
-  `;
+    <h3>Vulnerability Report Details</h3>`;
 
   vulnerabilitylist.map((vul) => {
-    vulStr += `${REPORT_UTIL.getVulnerabilitiesValue(vul)}`;
+    const isBooleanFix = REPORT_UTIL.ifFixIsBoolean(vul.fixAvailable);
+    vulStr += `
+    <div  id='${vul.name}' class='package-vul-box box bl-${vul.severity}'>
+      <div>
+          ${REPORT_UTIL.buildPackage(vul, isBooleanFix)}
+      </div>
+
+      <div>
+        <h3>Vulnerabilities</h3>
+        <ul>
+          ${REPORT_UTIL.getVulnerabilitiesValue(vul)}
+        </ul>
+      </div>
+    </div>`;
   });
 
-  vulStr += `</table>
-  </div>`;
+  vulStr += `</div>`;
 
   vulStr += `<div>
     <br/>
     <hr/> 
-    <div><b>#</b>  <i>${MSGS.SCORE_TOOLTIP}</i></div>
-    <div><b>@</b> <i>${MSGS.CWE_TOOLTIP}</i></div>
-    <div><b>$</b>  <i>${MSGS.GHSA_TOOLTIP}</i></div>
-    <div><div class='mb-1 mr-1 is-direct-indicator'>&nbsp;</div> The application is directly dependent/using the given package.</div>
-    <div><div class='mr-1 is-indirect-indicator'>&nbsp;</div> The application is directly not using the given package, instead any of the direct dependency <div class='severity-box is-direct-indicator'>&nbsp;</div> is using the given package.</div>
-
+    <div><b># Score: </b>  <i>${MSGS.SCORE_TOOLTIP}</i></div>
+    <div><b># CWE: </b> <i>${MSGS.CWE_TOOLTIP}</i></div>
+    <div><b># GHSA: </b>  <i>${MSGS.GHSA_TOOLTIP}</i></div>
+    <br/><br/>
   </div>`;
 
   return vulStr;

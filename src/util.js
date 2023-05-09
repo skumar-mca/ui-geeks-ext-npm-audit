@@ -86,6 +86,16 @@ const convertObjectToArray = (obj, keyAttribute, valueAttribute) => {
   });
 };
 
+const severityTag = (severity) => {
+  if (!severity) {
+    return '';
+  }
+
+  severity = severity || '';
+  const severityText = severity.charAt(0).toUpperCase() + severity.slice(1);
+  return `<div class='severity-box severity-${severity}'>${severityText}</div>`;
+};
+
 module.exports = {
   logMsg,
   logErrorMsg,
@@ -95,5 +105,6 @@ module.exports = {
   registerCommand,
   convertObjectToArray,
   sortByKey,
+  severityTag,
   isDarkTheme
 };

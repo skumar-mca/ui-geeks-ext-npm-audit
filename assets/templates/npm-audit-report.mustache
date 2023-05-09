@@ -2,6 +2,9 @@
     {{  commonCSS  }}
   .table-dep { margin-bottom:40px; }
   .table-dep th:nth-child(3){ width: 120px;}
+  .no-vul { padding: 20px; background: #7bb134; text-align: center; height: 150px; display: flex; align-items: center; flex-direction: column; justify-content: center; color: #242020;}
+  .no-vul .head { font-size: 40px; font-weight:bold;}
+  .no-vul .sub-head { font-size: 20px; margin-top:10px;}
 </style>
 <script
   src="https://cdn.jsdelivr.net/npm/chart.js@4.2.1/dist/chart.umd.min.js"
@@ -10,30 +13,28 @@
 
 <script>
   const vscode = acquireVsCodeApi();
-  function downloadReport() {
+  function downloadReport(reportType) {
     vscode.postMessage({
-      command: 'downloadReport',
-      text: 'Download Report Now'
-    });
+        command: reportType === 'html' ? 'downloadReportAsHTML' : 'downloadReportAsPDF' ,
+        text: 'Download Report Now'
+     })
   }
-
- 
 
   window.addEventListener('message', (event) => {
     const message = event.data;
     const downloadBtn = document.getElementById('downloadLink');
 
     switch (message.command) {
-      case 'downloadingPDFStart':
+      case 'downloadingStart':
         
         if (downloadBtn) {
-          downloadBtn.textContent = 'Downloading PDF...';
+          downloadBtn.textContent = 'Downloading...';
         }
         break;
 
-      case 'downloadingPDFEnd':
+      case 'downloadingEnd':
         if (downloadBtn) {
-          downloadBtn.textContent = 'Download PDF';
+          downloadBtn.textContent = 'Download as';
         }
         break;
     }
@@ -44,17 +45,9 @@
   <h1 class="header">
     <h2 class="header">
       NPM Audit Report
-      <span class="email-link header-link-actions">
-        <span class="color-grey">
-          &#10515; &nbsp;<a
-            class="no-link"
-            id="downloadLink"
-            href="javascript:void(0)"
-            title="Download Report in PDF Format"
-            onclick="downloadReport()"
-            >Download PDF</a
-          ></span
-        >
+      <span class='email-link header-link-actions'>
+        <span class='color-grey'> <span id='downloadLink'>Download as</span>&nbsp;<a class='no-link' href='javascript:void(0)' title='Download Report in HTML Format' onclick="downloadReport('html')">HTML</a>
+        |&nbsp;<a class='no-link' href='javascript:void(0)' title='Download Report in PDF Format' onclick="downloadReport('pdf')">PDF</a> </span>
       </span>
     </h2>
   </h1>
@@ -85,30 +78,27 @@
   </div>
 <br/>
 
+{{#totalVulnerabilities}}
+<div>
+  <div class='flex'>
+    <div class='text-center'>
+      <h2>Vulnerabilities ({{totalVulnerabilities}})</h2>
+      <div style="width: 300px;">
+        <canvas id="vulnerabilities"></canvas>
+      </div>
+    </div>
 
-<div class='flex'>
-  <div class='text-center'>
-    <h2>Vulnerabilities ({{totalVulnerabilities}})</h2>
-    <div style="width: 300px;">
-      <canvas id="vulnerabilities"></canvas>
+    <div class='text-center'>
+      <h2>Dependencies ({{totalDependencies}})</h2>
+      <div style="width: 300px;">
+        <canvas id="dependencies"></canvas>
+      </div>
     </div>
   </div>
-
-  <div class='text-center'>
-    <h2>Dependencies ({{totalDependencies}})</h2>
-    <div style="width: 300px;">
-      <canvas id="dependencies"></canvas>
-    </div>
-  </div>
-</div>
-
-<br />
-
-<div style="border-bottom: 1px solid #8b8989; margin-bottom: 15px"></div>
-
-<script>
-
-const chartOptions = {
+  <br />
+  <div style="border-bottom: 1px solid #8b8989; margin-bottom: 15px"></div>
+  <script>
+  const chartOptions = {
         animations: false,
         plugins: {
             legend: {
@@ -118,10 +108,9 @@ const chartOptions = {
                 }
             }
         }
-};
+  };
 
-
-function showVulnerabilityChart() {
+  function showVulnerabilityChart() {
   const data = {
     labels: ['Critical ({{critical}})', 'High ({{high}})', 'Moderate ({{moderate}})','Low ({{low}})','Info ({{info}})'],
     datasets: [
@@ -140,9 +129,9 @@ function showVulnerabilityChart() {
   };
 
   new Chart(document.getElementById('vulnerabilities'), config);
-}
+  }
 
-function showDependencyChart() {
+  function showDependencyChart() {
   const data = {
     labels: ['Dev ({{dev}})', 'Prod ({{prod}})', 'Optional ({{optional}})','Peer ({{peer}})','Peer Optional ({{peerOptional}})'],
     datasets: [
@@ -161,11 +150,22 @@ function showDependencyChart() {
   };
 
   new Chart(document.getElementById('dependencies'), config);
-}
+  }
 
-showVulnerabilityChart();
-showDependencyChart();
+  showVulnerabilityChart();
+  showDependencyChart();
+  </script>
+  <br />
+</div>
+{{/totalVulnerabilities}}
+
+{{^totalVulnerabilities}}
+  <div class='no-vul'>
+    <div class='head'>Great! No vulnerabilities found.</div>
+    <div class='sub-head'>All packages are safe to use.</div>
+  </div>
+  
+{{/totalVulnerabilities}}
 
 
-</script>
-<br />
+

@@ -1,7 +1,7 @@
 {
   "name": "npm-audit-ui-geeks",
   "displayName": "NPM Audit Report",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Generate Visual NPM Package Audit Report.",
   "main": "./src/extension.js",
   "publisher": "skumarmca2010",

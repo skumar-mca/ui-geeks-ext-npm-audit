@@ -39,6 +39,12 @@ If you have any issues report them at <a href='https://github.com/skumar-mca/ui-
 
 <a href='https://github.com/skumar-mca/ui-geeks-ext-package-dep'>Github</a>
 <br/>
+<br/>
+
+## Other useful extentions
+
+<a href='https://ui-geeks.in/#/vscode-extensions'>UI Geeks | Extentions</a>
+<br/>
 
 <hr>
 <br/>
