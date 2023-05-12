@@ -12,7 +12,7 @@ const MSGS = {
   PACKAGE_LOCK_JSON_NOT_FOUND: `Error: package-lock.json file not found!`,
   INVALID_SELECTION: `Invalid Selection`,
   REPORT_CREATED: `Report downloaded successfully!`,
-  PDF_ERROR: `Error generating PDF Report. Please try again later. Error: ##MESSAGE##.`,
+  PDF_ERROR: `Error generating PDF Report. Please try again later. You may need to open VSCode in Administrator mode.`,
   PREPARING_PDF: `Generating PDF, please wait...`,
   SCORE_TOOLTIP: `This score calculates overall vulnerability severity from 0 to 10 and is based on the Common Vulnerability Scoring System (CVSS).`,
   CWE_TOOLTIP: `The Common Weakness Enumeration (CWE) is a list of weaknesses in software that can lead to security issues.`,
@@ -41,7 +41,7 @@ const COMMON_CSS = `
   --low-bg: #93dfb4;
   --info-bg: #b6d3f1;
 }
-
+html {  scroll-behavior: smooth;}
 body { font-family: Arial, Helvetica, sans-serif; font-size: 1em; background-color: #f6f6f6; color: black; -webkit-print-color-adjust: exact;}
 .b { font-weight: bold; }
 .i { font-style: italic; }
@@ -60,6 +60,8 @@ body { font-family: Arial, Helvetica, sans-serif; font-size: 1em; background-col
 .color-grey { color: #7a7a7a}
 .text-danger{ color:red}
 .text-warning { color:#9a5919}
+.internal-link { text-decoration:none; color: #498ba7;  }
+.internal-link:hover { color: #7a7a7a;}
 .no-link { text-decoration:none;  }
 .no-link:hover { color: #7a7a7a;}
 .content { display: flex; flex-direction: row; justify-content: space-between; gap:10px; }
@@ -92,7 +94,7 @@ body { font-family: Arial, Helvetica, sans-serif; font-size: 1em; background-col
 .fix-yellow { color: #cf6321; }
 .email-link { font-size:20px; position:absolute; right: 20px; margin-top:20px; }
 .email-link a.no-link { font-size:16px; }
-.severity-box{ width: 75px; display: inline-block; vertical-align: middle; padding: 0px 6px 0px 6px; border-radius: 4px; font-weight: bold; text-align: center; }
+.severity-box{ width: 75px; display: inline-block; vertical-align: middle; padding: 2px 6px 3px 6px; border-radius: 4px; font-weight: bold; text-align: center; }
 .severity-critical{ background-color: var(--critical-bg); }
 .severity-high{ background-color: var(--high-bg);; }
 .severity-moderate{ background-color:var(--moderate-bg); }
